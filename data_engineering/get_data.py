@@ -6,7 +6,7 @@ import os
 from google.cloud import storage
 
 BUCKET_NAME = 'build_hackathon_dnanyc'
-GCS_PREFIX = 'pivot_data/'
+GCS_PREFIX = 'pivot_data_v2/'
 
 
 def configure_gcs():
@@ -68,10 +68,11 @@ def read_and_concatenate(files, nb_files=100, debug=False):
     return betas, labels, cpg_sites, index
 
 
-def read_dataset(file_path, nb_partition=10, debug=False):
+def read_dataset(file_path, gcs_prefix=GCS_PREFIX, nb_partition=10, debug=False):
     """
     Main function to download the dataset
 
+    :param gcs_prefix: Path in Google Cloud Storage
     :param file_path: folder in which to download the data
     :param nb_partition: Number of partitions to load
     :param debug: Boolean to print debug information
@@ -92,7 +93,7 @@ def read_dataset(file_path, nb_partition=10, debug=False):
         os.mkdir(file_path)
         client = configure_gcs()
         print(f"Downloading data...")
-        download_data(client, BUCKET_NAME, GCS_PREFIX, nb_partition, file_path, debug=debug)
+        download_data(client, BUCKET_NAME, gcs_prefix, nb_partition, file_path, debug=debug)
     else:
         print(f"Using already downloaded data")
     files = os.listdir(file_path)

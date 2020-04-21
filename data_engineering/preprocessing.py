@@ -58,7 +58,8 @@ def fill_remaining_na(betas):
     return betas
 
 
-def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3, sampling_strategy=0.5):
+def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3, sampling_strategy=0.5,
+                  fill_na_strategy='knn'):
     print(f"=== Drop Columns and Rows ===")
     # Dropping columns
     percent_threshold = threshold_to_drop * 100
@@ -71,9 +72,14 @@ def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3
 
     # Filling remaining NA Values
     print(f"\n=== Fill remaining NAs ===")
-    print(f"Filling remaining NA values using a KNNImputer")
     nb_nan = np.sum(np.sum(np.isnan(betas), axis=1), axis=0)
-    betas = fill_remaining_na(betas)
+    if fill_na_strategy == 'knn':
+        print(f"Filling remaining NA values using a KNNImputer")
+        betas = fill_remaining_na(betas)
+    else:
+        print(f"Filling remaining NAs with zeros")
+        nan_idx = np.where(np.isnan(betas))
+        betas[nan_idx] = 0
     print(f"{nb_nan} NA were filled, i.e. approximately {nb_nan / betas.shape[0]:.2f} per rows")
 
     print(f"\n=== Train / Test Split ===")
