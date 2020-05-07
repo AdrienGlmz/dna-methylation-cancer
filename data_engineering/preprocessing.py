@@ -59,7 +59,7 @@ def fill_remaining_na(betas):
 
 
 def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3, sampling_strategy=0.5,
-                  fill_na_strategy='knn'):
+                  fill_na_strategy='knn', smote=True):
     print(f"=== Drop Columns and Rows ===")
     # Dropping columns
     percent_threshold = threshold_to_drop * 100
@@ -95,10 +95,14 @@ def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3
     print(f"The average of column mean on train is {np.mean(np.mean(X_train_scaled, axis=1), axis=0):.2f}")
     print(f"The average of column mean on test is {np.mean(np.mean(X_test_scaled, axis=1), axis=0):.2f}")
 
-    print("\n=== Balance dataset ===")
-    print(f"After rebalancing the training set, the ratio positive / negative observation is {sampling_strategy}")
-    sm = SMOTE(random_state=123, sampling_strategy=sampling_strategy)
-    X_train_res, y_train_res = sm.fit_sample(X_train_scaled, y_train)
-    print(f"{X_train_res.shape[0] - X_train_scaled.shape[0]} rows were added in the training data")
+    if smote:
+        print("\n=== Balance dataset ===")
+        print(f"After rebalancing the training set, the ratio positive / negative observation is {sampling_strategy}")
+        sm = SMOTE(random_state=123, sampling_strategy=sampling_strategy)
+        X_train_res, y_train_res = sm.fit_sample(X_train_scaled, y_train)
+        print(f"{X_train_res.shape[0] - X_train_scaled.shape[0]} rows were added in the training data")
+    else:
+        X_train_res = X_train_scaled
+        y_train_res = y_train
 
     return X_train_res, X_test_scaled, y_train_res, y_test, labels, cpg_sites
