@@ -1,6 +1,10 @@
 import numpy as np
-
-from sklearn.impute import KNNImputer
+try:
+    # If using sklearn v0.22
+    from sklearn.impute import KNNImputer
+except ImportError:
+    # Else, assume using sklearn v0.20.3
+    from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
@@ -54,7 +58,6 @@ def drop_rows(betas, labels, threshold=0.1):
 def fill_remaining_na(betas):
     imputer = KNNImputer(n_neighbors=5)
     betas = imputer.fit_transform(betas)
-
     return betas
 
 
@@ -76,6 +79,10 @@ def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3
     if fill_na_strategy == 'knn':
         print(f"Filling remaining NA values using a KNNImputer")
         betas = fill_remaining_na(betas)
+    elif fill_na_strategy == 'simple':
+        print(f"Filling remaining NA values using a Simple Median Imputer")
+        imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+        betas = imputer.fit_transform(betas)
     else:
         print(f"Filling remaining NAs with zeros")
         nan_idx = np.where(np.isnan(betas))
