@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import shutil
+import traceback
 import os
 
 from google.cloud import storage
@@ -40,35 +41,39 @@ def download_data(client, bucket_name, gcs_prefix, nb_partition=10,
     return downloaded_files
 
 
-def read_and_concatenate(files, nb_files=100, debug=False):
+def read_and_concatenate(files, label_names=['label'], nb_files=100, debug=False):
     df0 = pd.read_csv(files[0], delimiter=',', index_col=0)
-    betas = df0.drop('label', axis=1).values
+    betas = df0.drop(label_names, axis=1).values
     if debug:
         print("Loading files...")
         print(betas.shape)
-    cpg_sites = df0.drop('label', axis=1).columns
+    cpg_sites = df0.drop(label_names, axis=1).columns
     index = df0.index.values
-    labels = df0['label'].values
+    labels = df0[label_names].values
 
     for file_path in files[1:nb_files]:
         try:
             df = pd.read_csv(file_path, delimiter=',', index_col=0)
-            betas_add = df.drop('label', axis=1).values
+            betas_add = df.drop(label_names, axis=1).values
             index_add = df.index.values
-            labels_add = df['label'].values
+            labels_add = df[label_names].values
             betas = np.concatenate((betas, betas_add), axis=0)
             index = np.concatenate((index, index_add), axis=0)
             labels = np.concatenate((labels, labels_add), axis=0)
             if debug:
                 print(betas.shape)
         except:
+            traceback.print_exc()
             print(f"WARNING: Skipping {file_path}")
     print(f"Loaded dataset. Shape = {betas.shape}")
 
+    if labels.shape[1] == 1:
+        n_rows = labels.shape[0]
+        labels = labels.reshape(n_rows,)
     return betas, labels, cpg_sites, index
 
 
-def read_dataset(file_path, gcs_prefix=GCS_PREFIX, nb_partition=10, debug=False):
+def read_dataset(file_path, label_names=['label'], gcs_prefix=GCS_PREFIX, nb_partition=10, debug=False):
     """
     Main function to download the dataset
 
@@ -98,6 +103,6 @@ def read_dataset(file_path, gcs_prefix=GCS_PREFIX, nb_partition=10, debug=False)
         print(f"Using already downloaded data")
     files = os.listdir(file_path)
     files = [f'{file_path}/' + elt for elt in files]
-    betas, labels, cpg_sites, index = read_and_concatenate(files)
+    betas, labels, cpg_sites, index = read_and_concatenate(files, label_names=label_names)
 
     return betas, labels, cpg_sites, index
