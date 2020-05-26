@@ -64,6 +64,13 @@ def fill_remaining_na(betas):
 def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3, sampling_strategy=0.5,
                   fill_na_strategy='knn', smote=True):
     print(f"=== Drop Columns and Rows ===")
+    # Dropping rows for which label is NA
+    idx_to_delete = np.where(np.isnan(labels))[0]
+    print(f"Dropping {idx_to_delete.shape[0]} because of missing labels")
+    labels = np.delete(labels, idx_to_delete)
+    betas = np.delete(betas, idx_to_delete, axis=0)
+    print(f"New Shape = {betas.shape}")
+
     # Dropping columns
     percent_threshold = threshold_to_drop * 100
     print(f"Dropping columns which have more than {percent_threshold:.0f}% of values missing")
