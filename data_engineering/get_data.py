@@ -41,8 +41,10 @@ def download_data(client, bucket_name, gcs_prefix, nb_partition=10,
     return downloaded_files
 
 
-def read_and_concatenate(files, label_names=['label'], nb_files=100, debug=False):
+def read_and_concatenate(files, label_names=['label'], project_filter=None, nb_files=100, debug=False):
     df0 = pd.read_csv(files[0], delimiter=',', index_col=0)
+    if project_filter:
+        df0 = df0[df0['project_short_name'] == project_filter]
     betas = df0.drop(label_names, axis=1).values
     if debug:
         print("Loading files...")
@@ -54,6 +56,8 @@ def read_and_concatenate(files, label_names=['label'], nb_files=100, debug=False
     for file_path in files[1:nb_files]:
         try:
             df = pd.read_csv(file_path, delimiter=',', index_col=0)
+            if project_filter:
+                df = df[df['project_short_name'] == project_filter]
             betas_add = df.drop(label_names, axis=1).values
             index_add = df.index.values
             labels_add = df[label_names].values
@@ -73,10 +77,12 @@ def read_and_concatenate(files, label_names=['label'], nb_files=100, debug=False
     return betas, labels, cpg_sites, index
 
 
-def read_dataset(file_path, label_names=['label'], gcs_prefix=GCS_PREFIX, nb_partition=10, debug=False):
+def read_dataset(file_path, label_names=['label'], project_filter=None,
+                 gcs_prefix=GCS_PREFIX, nb_partition=10, debug=False):
     """
     Main function to download the dataset
 
+    :param project_filter: Add a filter to restrict on one TCGA project
     :param gcs_prefix: Path in Google Cloud Storage
     :param file_path: folder in which to download the data
     :param nb_partition: Number of partitions to load
@@ -103,6 +109,7 @@ def read_dataset(file_path, label_names=['label'], gcs_prefix=GCS_PREFIX, nb_par
         print(f"Using already downloaded data")
     files = os.listdir(file_path)
     files = [f'{file_path}/' + elt for elt in files]
-    betas, labels, cpg_sites, index = read_and_concatenate(files, label_names=label_names)
+    betas, labels, cpg_sites, index = read_and_concatenate(files, label_names=label_names,
+                                                           project_filter=project_filter)
 
     return betas, labels, cpg_sites, index
