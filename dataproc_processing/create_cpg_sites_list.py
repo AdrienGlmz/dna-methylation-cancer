@@ -7,22 +7,69 @@ from pyspark.sql.functions import udf, coalesce
 from pyspark.sql.types import DoubleType, IntegerType, StringType
 
 # Define user functions
+# map_sub_labels_to_classes = {
+#  'Stage I': 'stage_1',
+#  'Stage IA': 'stage_1',
+#  'Stage IB': 'stage_1',
+#  'Stage II': 'stage_2',
+#  'Stage IIA': 'stage_2',
+#  'Stage IIB': 'stage_2',
+#  'Stage III': 'stage_3',
+#  'Stage IIIA': 'stage_3',
+#  'Stage IIIB': 'stage_3',
+#  'Stage IIIC': 'stage_3',
+#  'Stage IV': 'stage_4',
+#  'Stage X': 'stage_5',
+#   None: None,
+#   'stage_0': 'stage_0'
+# }
+
+# map_sub_labels_to_classes = {
+#  'T1b': 'stage_1',
+#  'TX': None,
+#  'T2': 'stage_2',
+#  'T2b': 'stage_2',
+#  'T4': 'stage_4',
+#  'T4b':'stage_4',
+#  'T1c': 'stage_1',
+#  'T1': 'stage_1',
+#  'T4d': 'stage_4',
+#  'T2a': 'stage_2',
+#  'T3a': 'stage_3',
+#  'T3': 'stage_3',
+#  'T1a': 'stage_1',
+#  'stage_0': 'stage_0'
+# }
+
+# map_sub_labels_to_classes = {
+#  'N3c': 'stage_3',
+#  'N1c': 'stage_1',
+#  'N3': 'stage_3',
+#  'N2a': 'stage_2',
+#  'N3b': 'stage_3',
+#  'N3a': 'stage_3',
+#  'N0': 'stage_0',
+#  'NX': None,
+#  'N1': 'stage_1',
+#  'N0 (i-)': 'stage_0',
+#  'N2': 'stage_2',
+#  'N0 (mol+)': 'stage_0',
+#  'N1b': 'stage_1',
+#  'N1mi': 'stage_1',
+#  'N0 (i+)': 'stage_0',
+#  'N1a': 'stage_1',
+#  'stage_0': 'stage_0'
+# }
+
 map_sub_labels_to_classes = {
- 'Stage I': 'stage_1',
- 'Stage IA': 'stage_1',
- 'Stage IB': 'stage_1',
- 'Stage II': 'stage_2',
- 'Stage IIA': 'stage_2',
- 'Stage IIB': 'stage_2',
- 'Stage III': 'stage_3',
- 'Stage IIIA': 'stage_3',
- 'Stage IIIB': 'stage_3',
- 'Stage IIIC': 'stage_3',
- 'Stage IV': 'stage_4',
- 'Stage X': 'stage_5',
-  None: None,
-  'stage_0': 'stage_0'
+    'MX': None,
+    'cM0 (i+)': 'stage_0',
+    'M0': 'stage_0',
+    'M1': 'stage_1',
+    'stage_0': 'stage_0'
 }
+
+target_column = 'pathologic_M'
 
 mapping_values = sorted(list(set([v for k, v in map_sub_labels_to_classes.items() if v])))
 
@@ -93,8 +140,8 @@ df = df.filter(df.project_short_name == 'TCGA-BRCA')
 df = df.drop('project_short_name')
 
 # Reformat columns
-df = df.withColumn("pathologic_stage", identify_non_cancerous_samples_udf('sample_id', 'pathologic_stage'))
-df = df.withColumn("pathologic_stage", map_to_classes_udf('pathologic_stage'))
+df = df.withColumn(target_column, identify_non_cancerous_samples_udf('sample_id', target_column))
+df = df.withColumn(target_column, map_to_classes_udf(target_column))
 
 # Transformation
 # Count CpG sites
@@ -104,7 +151,7 @@ df_count = df_count.withColumnRenamed('count', 'count_cpg')
 sample_count = df.select('participant_id').dropDuplicates().count()
 
 # Variance by group
-mean_by_cpg = df.groupby('CpG_probe_id').pivot('pathologic_stage', mapping_values).avg('beta_value')
+mean_by_cpg = df.groupby('CpG_probe_id').pivot(target_column, mapping_values).avg('beta_value')
 cpg_df = mean_by_cpg.join(df_count, ['CpG_probe_id'], 'left')
 
 # Discard if no value for more than 90% of patients
@@ -131,7 +178,7 @@ for elt in mapping_values:
 mean_by_cpg = mean_by_cpg.withColumn("sum_squared_between_groups", sum(mean_by_cpg[elt] for elt in mapping_values))
 mean_by_cpg = mean_by_cpg.orderBy('sum_squared_between_groups', ascending=False)
 
-top_cpg = mean_by_cpg.select('CpG_probe_id').limit(100)
+top_cpg = mean_by_cpg.select('CpG_probe_id').limit(5000)
 top_cpg = top_cpg.rdd.map(lambda x: x.CpG_probe_id)
 
-top_cpg.repartition(6).saveAsTextFile('gs://build_hackathon_dnanyc/columns_to_keep_v3/pathologic_stage')
+top_cpg.repartition(6).saveAsTextFile('gs://build_hackathon_dnanyc/columns_to_keep_v3/' + target_column)

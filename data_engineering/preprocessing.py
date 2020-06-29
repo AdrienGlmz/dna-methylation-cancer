@@ -113,12 +113,13 @@ def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3
         print("\n=== Balance dataset ===")
         # Computing multi-class ratio
         unique, count = np.unique(y_train, return_counts=True)
+        print(list(zip(unique, count)))
         m = max(count)
         majority_class = unique[np.argmax(count)]
 
         # Every class will be oversampled to (ratio) * #observations in majority class
         # Except the majority class which is left as is
-        resampling_strategy = {k: int(sampling_strategy * m) for (k, c) in zip(unique, count)}
+        resampling_strategy = {k: max(c, int(sampling_strategy * m)) for (k, c) in zip(unique, count)}
         resampling_strategy[majority_class] = m
 
         print(f"The resampling_strategy gives the following repartition {resampling_strategy}")

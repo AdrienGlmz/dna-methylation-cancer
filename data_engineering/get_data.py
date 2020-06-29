@@ -113,3 +113,13 @@ def read_dataset(file_path, label_names=['label'], project_filter=None,
                                                            project_filter=project_filter)
 
     return betas, labels, cpg_sites, index
+
+
+def read_from_gcs(file_path, label_names):
+    df = pd.read_csv(file_path)
+    df = df.set_index('label_barcode')
+    betas = df.drop(label_names, axis=1).values
+    labels = df[label_names].values
+    cpg_sites = df.drop(label_names, axis=1).columns
+    index = df.index.values
+    return betas, labels, cpg_sites, index
