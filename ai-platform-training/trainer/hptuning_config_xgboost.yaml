@@ -1,0 +1,38 @@
+trainingInput:
+  hyperparameters:
+    goal: MAXIMIZE
+    maxTrials: 15
+    maxParallelTrials: 0
+    hyperparameterMetricTag: f1_score_micro
+    enableTrialEarlyStopping: TRUE
+    params:
+    - parameterName: ccp_alpha
+      type: DOUBLE
+      minValue: 0.001
+      maxValue: 10
+      scaleType: UNIT_LOG_SCALE
+    - parameterName: gamma
+      type: DOUBLE
+      minValue: 0.001
+      maxValue: 10
+      scaleType: UNIT_LOG_SCALE
+    - parameterName: min_child_weight
+      type: DOUBLE
+      minValue: 0.001
+      maxValue: 100
+      scaleType: UNIT_LOG_SCALE
+    - parameterName: max_depth
+      type: INTEGER
+      minValue: 2
+      maxValue: 50
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: colsample_bytree
+      type: DOUBLE
+      minValue: 0.2
+      maxValue: 1
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: subsample
+      type: DOUBLE
+      minValue: 0.2
+      maxValue: 1
+      scaleType: UNIT_LINEAR_SCALE

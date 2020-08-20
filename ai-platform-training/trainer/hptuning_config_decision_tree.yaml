@@ -11,11 +11,6 @@ trainingInput:
       minValue: 0.000001
       maxValue: 0.5
       scaleType: UNIT_LOG_SCALE
-    - parameterName: n_estimators
-      type: INTEGER
-      minValue: 100
-      maxValue: 10000
-      scaleType: UNIT_LOG_SCALE
     - parameterName: max_features
       type: INTEGER
       minValue: 10

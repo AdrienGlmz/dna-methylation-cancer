@@ -1,6 +1,6 @@
 import argparse
 from google.cloud import storage
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 from sklearn.externals import joblib
@@ -22,17 +22,11 @@ parser.add_argument(
     default=0.1,
     type=float
     )
+
 parser.add_argument(
     '--max_features',  # Specified in the config file
     help='Max number of features to consider at each split.',
     default=70,
-    type=int
-    )
-
-parser.add_argument(
-    '--n_estimators',  # Specified in the config file
-    help='Number of trees to fit in the forest',
-    default=100,
     type=int
     )
 
@@ -66,9 +60,8 @@ y = df[label_name].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3, shuffle=False)
 
 # Define the model with the parameters we want to tune
-model = RandomForestClassifier(
+model = DecisionTreeClassifier(
     ccp_alpha=args.ccp_alpha,
-    n_estimators=args.n_estimators,
     max_features=args.max_features,
     max_depth=args.max_depth
     )
@@ -89,7 +82,7 @@ hpt.report_hyperparameter_tuning_metric(
     )
 
 # Export the model to a file. The name needs to be 'model.joblib'
-model_filename = 'model-binary-rf-micro.joblib'
+model_filename = 'model-binary-decision-tree-micro.joblib'
 joblib.dump(model, model_filename)
 
 # Define the job dir, bucket id and bucket path to upload the model to GCS

@@ -1,9 +1,9 @@
 import argparse
 from google.cloud import storage
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 from sklearn.externals import joblib
+import xgboost as xgb
 import pandas as pd
 import hypertune
 
@@ -23,17 +23,16 @@ parser.add_argument(
     type=float
     )
 parser.add_argument(
-    '--max_features',  # Specified in the config file
-    help='Max number of features to consider at each split.',
-    default=70,
-    type=int
+    '--gamma',  # Specified in the config file
+    help='Minimum loss reduction required to make a further partition on a leaf node of the tree.',
+    default=0.1,
+    type=float
     )
-
 parser.add_argument(
-    '--n_estimators',  # Specified in the config file
-    help='Number of trees to fit in the forest',
-    default=100,
-    type=int
+    '--min_child_weight',  # Specified in the config file
+    help='Minimum sum of instance weight (hessian) needed in a child. ',
+    default=0.1,
+    type=float
     )
 
 parser.add_argument(
@@ -41,6 +40,20 @@ parser.add_argument(
     help='MAx depth of each tree in the forest',
     default=20,
     type=int
+    )
+
+parser.add_argument(
+    '--colsample_bytree',  # Specified in the config file
+    help='MAx depth of each tree in the forest',
+    default=1,
+    type=float
+    )
+
+parser.add_argument(
+    '--subsample',  # Specified in the config file
+    help='MAx depth of each tree in the forest',
+    default=1,
+    type=float
     )
 
 args = parser.parse_args()
@@ -66,12 +79,12 @@ y = df[label_name].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3, shuffle=False)
 
 # Define the model with the parameters we want to tune
-model = RandomForestClassifier(
-    ccp_alpha=args.ccp_alpha,
-    n_estimators=args.n_estimators,
-    max_features=args.max_features,
-    max_depth=args.max_depth
-    )
+model = xgb.XGBClassifier(objective='binary:logistic', colsample_bytree=args.colsample_bytree,
+                          subsample=args.subsample,
+                          max_depth=args.max_depth,
+                          alpha=args.ccp_alpha,
+                          gamma=args.gamma,
+                          min_child_weight=args.min_child_weight)
 
 # Fit the training data and predict the test data
 model.fit(X_train, y_train)
@@ -89,7 +102,7 @@ hpt.report_hyperparameter_tuning_metric(
     )
 
 # Export the model to a file. The name needs to be 'model.joblib'
-model_filename = 'model-binary-rf-micro.joblib'
+model_filename = 'model-binary-xgboost-21-micro.joblib'
 joblib.dump(model, model_filename)
 
 # Define the job dir, bucket id and bucket path to upload the model to GCS

@@ -15,6 +15,25 @@ def configure_gcs():
     return client
 
 
+def download_single_file(bucket_name, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    # bucket_name = "your-bucket-name"
+    # source_blob_name = "storage-object-name"
+    # destination_file_name = "local/path/to/file"
+
+    storage_client = storage.Client()
+
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+    blob.download_to_filename(destination_file_name)
+
+    print(
+        "Blob {} downloaded to {}.".format(
+            source_blob_name, destination_file_name
+        )
+    )
+
+
 def download_data(client, bucket_name, gcs_prefix, nb_partition=10,
                   destination='input_data/', debug=False):
     # Set up bucket
@@ -115,8 +134,10 @@ def read_dataset(file_path, label_names=['label'], project_filter=None,
     return betas, labels, cpg_sites, index
 
 
-def read_from_gcs(file_path, label_names):
-    df = pd.read_csv(file_path)
+def read_from_gcs(bucket_name, file_path, label_names):
+    destination_path = 'training_data.csv'
+    download_single_file(bucket_name, file_path, destination_path)
+    df = pd.read_csv(destination_path)
     df = df.set_index('label_barcode')
     betas = df.drop(label_names, axis=1).values
     labels = df[label_names].values

@@ -117,6 +117,9 @@ df = df.withColumnRenamed('sample_status', 'label')
 df = df.withColumn("beta_value", df.beta_value.cast(DoubleType()))
 df = df.withColumn('sample_id', df['sample_id'].cast(IntegerType()))
 
+# Filter on cancer observations only
+df = df.filter(df['label'] == 'tumor')
+
 # Import cancer stage data
 # Read from BigQuery
 cancer_stage_df = (
@@ -181,4 +184,4 @@ mean_by_cpg = mean_by_cpg.orderBy('sum_squared_between_groups', ascending=False)
 top_cpg = mean_by_cpg.select('CpG_probe_id').limit(5000)
 top_cpg = top_cpg.rdd.map(lambda x: x.CpG_probe_id)
 
-top_cpg.repartition(6).saveAsTextFile('gs://build_hackathon_dnanyc/columns_to_keep_v3/' + target_column)
+top_cpg.repartition(6).saveAsTextFile('gs://build_hackathon_dnanyc/columns_to_keep_v4/' + target_column)

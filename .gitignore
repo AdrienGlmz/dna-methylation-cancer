@@ -136,3 +136,12 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# exclude trained model files
+trained_models/
+
+# exclude old files
+old/
+
+# exclude input files
+data_engineering/columns_to_download/
