@@ -57,3 +57,31 @@ and configured using
 ```
 gcloud init
 ```
+
+## How to use
+
+The pipeline has been built using the following steps
+ 1. **Create BigQuery tables**
+   Using the `data_engineering` subfolder, create the BigQuery table using SQL scripts.
+   Those table are created from the TCGA tables already stored in BigQuery.
+   For more information, see the documentation [here](https://isb-cancer-genomics-cloud.readthedocs.io/en/latest/sections/BigQuery.html)
+ 2.  **Get the CpG site list to keep**
+   This CpG site list will be useful to create our training dataset.
+   Because there are approximately 500,000 CpG sites, we are keeping a subset of this list only to include as features (columns) of our dataset.
+   We are selection the CpG sites *to maximize variance between groups that we want to predict*.
+   For instance, if we want to predict cancer development, we will choose CpG sites by maximizing variance between cancerous and non-cancerous observations.
+   We are using DataProc ad PySpark scripts (in `dataproc_processing`) for this and saving this list in Google Cloud Storage (GCS).
+ 3. **Create the training dataset**
+   Based on the CpG site list created at step 1, we are creating the training dataset.
+   This will be done by querying the BigQuery table created at step 2. This dataset will be grouped by and pivoted to get one row per patient using Python and Pandas and saved in GCS. 
+   This is done with a Jupyter Notebook script using Google AI Platform's Jupyter notebooks (located in `data_engineering`)
+ 4. **Modeling**
+   This is the experimental modeling phase.
+   Using Google AI Platform's Jupyter notebooks, we are training multiple models types by using the saved training data in GCS.
+   The Jupyter Notebooks are saved in the `modeling` folder.
+ 5. **AI Platform Training**
+   Once the model type has been chosen (e.g. XGBoost), we are retraining this model on GCP's AI Platform to optimize the hyper-parameters.
+   This module is saved in `ai-platform-prediction`. The final model is saved in GCS.
+ 6. **AI Platform Prediction**
+   The final saved model is finally deployed using AI Platform prediction.
+   This allows us to get a callable API then integrated into the web-application - [repo here](https://github.com/Jeremy0dell/build-hackathon)
