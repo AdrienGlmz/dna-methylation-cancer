@@ -146,3 +146,9 @@ old/
 
 # exclude input files
 data_engineering/columns_to_download/
+
+# credentials
+gcp-*.json
+
+# exclude data
+input/

@@ -1,11 +1,11 @@
 #!/bin/bash
 BUCKET_NAME="build_hackathon_dnanyc"
-JOB_NAME="dna_methylation_xgboost_binary_$(date +"%Y%m%d_%H%M%S")"
+JOB_NAME="dna_methylation_rf_multiclass_$(date +"%Y%m%d_%H%M%S")"
 JOB_DIR="gs://$BUCKET_NAME/job_dir"
 TRAINER_PACKAGE_PATH="./trainer"
-MAIN_TRAINER_MODULE="trainer.xgboost"
-HPTUNING_CONFIG="./trainer/hptuning_config_xgboost.yaml"
-RUNTIME_VERSION="2.1"
+MAIN_TRAINER_MODULE="trainer.random_forest_multiclass"
+HPTUNING_CONFIG="./trainer/hptuning_config_random_forest.yaml"
+RUNTIME_VERSION="2.2"
 PYTHON_VERSION="3.7"
 REGION="us-east1"
 SCALE_TIER=CUSTOM
@@ -23,4 +23,4 @@ gcloud ai-platform jobs submit training $JOB_NAME \
   --config $HPTUNING_CONFIG
 
 # Optional command to stream the logs in the console
-gcloud ai-platform jobs stream-logs $JOB_NAME
+#gcloud ai-platform jobs stream-logs $JOB_NAME

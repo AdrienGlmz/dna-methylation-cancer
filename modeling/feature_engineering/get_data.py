@@ -8,10 +8,12 @@ from google.cloud import storage
 
 BUCKET_NAME = 'build_hackathon_dnanyc'
 GCS_PREFIX = 'pivot_data_v2/'
+CREDENTIALS_PATH = 'gcp-credentials-adrien-galamez.json'
 
 
 def configure_gcs():
-    client = storage.Client()
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = CREDENTIALS_PATH
+    client = storage.Client(project='gcp-nyc')
     return client
 
 

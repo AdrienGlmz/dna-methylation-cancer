@@ -8,6 +8,8 @@ except ImportError:
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
+from pandas import DataFrame
 
 
 def nan_by_columns(betas):
@@ -41,7 +43,7 @@ def drop_columns(betas, cpg_sites, threshold=0.1):
     return new_betas, new_cpg_sites
 
 
-def drop_rows(betas, labels, threshold=0.1):
+def drop_rows(betas, labels, index, threshold=0.1):
     count_nan = np.sum(np.isnan(betas), axis=1)
     freq_nan = count_nan / betas.shape[0]
 
@@ -50,9 +52,10 @@ def drop_rows(betas, labels, threshold=0.1):
     print(f"We will drop {len(rows_to_drop)} rows")
     new_betas = np.delete(betas, rows_to_drop, axis=0)
     new_labels = np.delete(labels, rows_to_drop, axis=0)
+    new_index = np.delete(index, rows_to_drop, axis=0)
     print(f"betas: New shape is {new_betas.shape}")
     print(f"labels: New shape is {new_labels.shape}")
-    return new_betas, new_labels
+    return new_betas, new_labels, new_index
 
 
 def fill_remaining_na(betas):
@@ -61,14 +64,15 @@ def fill_remaining_na(betas):
     return betas
 
 
-def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3, sampling_strategy=0.5,
-                  fill_na_strategy='knn', smote=True):
+def preprocessing(betas, labels, cpg_sites, index, threshold_to_drop=0.1, test_size=0.3, sampling_strategy=0.5,
+                  fill_na_strategy='knn', smote=False, undersample=False, train_test=True):
     print(f"=== Drop Columns and Rows ===")
     # Dropping rows for which label is NA
     idx_to_delete = np.where(np.isnan(labels))[0]
     print(f"Dropping {idx_to_delete.shape[0]} because of missing labels")
     labels = np.delete(labels, idx_to_delete)
     betas = np.delete(betas, idx_to_delete, axis=0)
+    index = np.delete(index, idx_to_delete)
     print(f"New Shape = {betas.shape}")
 
     # Dropping columns
@@ -78,7 +82,7 @@ def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3
 
     # Dropping rows
     print(f"\nDropping rows which have more than {percent_threshold:.0f}% of values missing")
-    betas, labels = drop_rows(betas, labels)
+    betas, labels, index = drop_rows(betas, labels, index)
 
     # Filling remaining NA Values
     print(f"\n=== Fill remaining NAs ===")
@@ -96,38 +100,51 @@ def preprocessing(betas, labels, cpg_sites, threshold_to_drop=0.1, test_size=0.3
         betas[nan_idx] = 0
     print(f"{nb_nan} NA were filled, i.e. approximately {nb_nan / betas.shape[0]:.2f} per rows")
 
-    print(f"\n=== Train / Test Split ===")
-    print(f"Splitting dataset into train and test")
-    print(f"Train = {100 - test_size * 100:.0f} %")
-    print(f"Test = {test_size * 100:.0f} %")
-    X_train, X_test, y_train, y_test = train_test_split(betas, labels, test_size=test_size, random_state=123)
+    if train_test:
+        print(f"\n=== Train / Test Split ===")
+        print(f"Splitting dataset into train and test")
+        print(f"Train = {100 - test_size * 100:.0f} %")
+        print(f"Test = {test_size * 100:.0f} %")
+        X_train, X_test, y_train, y_test = train_test_split(betas, labels, test_size=test_size, random_state=123)
 
-    print(f"\n=== Standardize dataset ===")
-    scaler = StandardScaler().fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    print(f"The average of column mean on train is {np.mean(np.mean(X_train_scaled, axis=1), axis=0):.2f}")
-    print(f"The average of column mean on test is {np.mean(np.mean(X_test_scaled, axis=1), axis=0):.2f}")
+        print(f"\n=== Standardize dataset ===")
+        scaler = StandardScaler().fit(X_train)
+        X_train_scaled = scaler.transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        print(f"The average of column mean on train is {np.mean(np.mean(X_train_scaled, axis=1), axis=0):.2f}")
+        print(f"The average of column mean on test is {np.mean(np.mean(X_test_scaled, axis=1), axis=0):.2f}")
 
-    if smote:
-        print("\n=== Balance dataset ===")
-        # Computing multi-class ratio
-        unique, count = np.unique(y_train, return_counts=True)
-        print(list(zip(unique, count)))
-        m = max(count)
-        majority_class = unique[np.argmax(count)]
+        if smote:
+            print("\n=== Balance dataset with oversample ===")
+            # Computing multi-class ratio
+            unique, count = np.unique(y_train, return_counts=True)
+            print(list(zip(unique, count)))
+            m = max(count)
+            majority_class = unique[np.argmax(count)]
 
-        # Every class will be oversampled to (ratio) * #observations in majority class
-        # Except the majority class which is left as is
-        resampling_strategy = {k: max(c, int(sampling_strategy * m)) for (k, c) in zip(unique, count)}
-        resampling_strategy[majority_class] = m
+            # Every class will be oversampled to (ratio) * #observations in majority class
+            # Except the majority class which is left as is
+            resampling_strategy = {k: max(c, int(sampling_strategy * m)) for (k, c) in zip(unique, count)}
+            resampling_strategy[majority_class] = m
 
-        print(f"The resampling_strategy gives the following repartition {resampling_strategy}")
-        sm = SMOTE(random_state=123, sampling_strategy=resampling_strategy)
-        X_train_res, y_train_res = sm.fit_sample(X_train_scaled, y_train)
-        print(f"{X_train_res.shape[0] - X_train_scaled.shape[0]} rows were added in the training data")
+            print(f"The resampling_strategy gives the following repartition {resampling_strategy}")
+            sm = SMOTE(random_state=123, sampling_strategy=resampling_strategy)
+            X_train_res, y_train_res = sm.fit_sample(X_train_scaled, y_train)
+            print(f"{X_train_res.shape[0] - X_train_scaled.shape[0]} rows were added in the training data")
+        elif undersample:
+            print("=== Balance dataset with undersample ===")
+
+            print(f"The resampling_strategy gives the following repartition {sampling_strategy}")
+            under_sampling = RandomUnderSampler(sampling_strategy=sampling_strategy)
+            X_train_res, y_train_res = under_sampling.fit_resample(X_train_scaled, y_train)
+        else:
+            X_train_res = X_train_scaled
+            y_train_res = y_train
+
+        return X_train_res, X_test_scaled, y_train_res, y_test, labels, cpg_sites
+
     else:
-        X_train_res = X_train_scaled
-        y_train_res = y_train
-
-    return X_train_res, X_test_scaled, y_train_res, y_test, labels, cpg_sites
+        df = DataFrame(betas, columns=cpg_sites, index=index)
+        df['label'] = labels
+        df['label'] = df['label'].astype(int)
+        return df
