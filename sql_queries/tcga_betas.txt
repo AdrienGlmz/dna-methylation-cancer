@@ -8,7 +8,7 @@ WITH
   SELECT
     MIM.CpG_probe_id,
     dna.case_barcode,
-    dna.sample_barcode,
+    dna.aliquot_barcode,
     dna.probe_id,
     dna.beta_value,
     gc.Name
@@ -40,12 +40,12 @@ SELECT
   A.case_barcode,
   A.beta_value,
   A.CpG_probe_id,
-  A.sample_barcode,
-  SUBSTR(A.sample_barcode, 14, 2) AS sample_id,
+  A.aliquot_barcode,
+  SUBSTR(A.aliquot_barcode, 14, 2) AS sample_id,
   IF
-  (SUBSTR(A.sample_barcode, 14, 2) IN ('10', '11', '12', '13', '14', '15', '16', '17', '18', '19'), "normal",
+  (SUBSTR(A.aliquot_barcode, 14, 2) IN ('10', '11', '12', '13', '14', '15', '16', '17', '18', '19'), "normal",
   IF
-  (SUBSTR(A.sample_barcode, 14, 2) IN ('01', '02', '03', '04',  '05', '06', '07', '08', '09'), 'tumor', "control")) AS sample_status,
+  (SUBSTR(A.aliquot_barcode, 14, 2) IN ('01', '02', '03', '04',  '05', '06', '07', '08', '09'), 'tumor', "control")) AS sample_status,
   B.row_number
 FROM
   brca_betas A

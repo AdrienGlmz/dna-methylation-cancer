@@ -99,7 +99,7 @@ def get_cpg_sites_binary_target(df):
     CLASSES = ['tumor', 'normal']
 
     df = df.withColumnRenamed('sample_status', 'label')
-    df = df.withColumnRenamed('case_barcode', 'participant_id')
+    df = df.withColumnRenamed('aliquot_barcode', 'participant_id')
     df = df.withColumn("beta_value", df.beta_value.cast(DoubleType()))
     df = df.withColumn('sample_id', df.sample_id.cast(IntegerType()))
 
