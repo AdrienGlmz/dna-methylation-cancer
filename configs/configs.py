@@ -4,4 +4,4 @@ DATASET = 'dna_cancer_prediction'
 GCS_BUCKET = 'dna-methylation-cancer'
 
 # Preprocessing variables
-DATASET_PATH = f'gs://{GCS_BUCKET}/training_data/'
+RAW_DATASET_PATH = 'training_data/tcga-binary.csv'
