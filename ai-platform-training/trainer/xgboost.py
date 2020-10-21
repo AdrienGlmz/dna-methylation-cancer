@@ -62,6 +62,7 @@ args = parser.parse_args()
 
 GCS_BUCKET = configs.GCS_BUCKET
 RAW_DATASET_PATH = configs.RAW_DATASET_PATH
+LABEL_NAME = configs.LABEL_NAME
 
 # Define the GCS bucket the training data is in
 client = storage.Client()
@@ -69,7 +70,7 @@ bucket = client.bucket(GCS_BUCKET)
 
 # Define the source blob name (aka file name) for the training data
 blob = bucket.blob(RAW_DATASET_PATH)
-label_name = 'labels'
+label_name = LABEL_NAME
 
 # Download the data into a file name
 blob.download_to_filename('train.csv')
