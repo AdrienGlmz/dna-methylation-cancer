@@ -15,4 +15,4 @@ gcloud ai-platform jobs submit training $JOB_NAME \
   --master-machine-type $MASTER_MACHINE_TYPE \
   --config $HPTUNING_CONFIG
   -- \
-  --job-dir $JOB_DIR \
+  --model-dir $JOB_DIR \

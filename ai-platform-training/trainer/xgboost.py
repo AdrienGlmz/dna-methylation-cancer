@@ -13,7 +13,7 @@ from configs import configs
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    '--job-dir',  # Handled automatically by AI Platform
+    '--model-dir',  # Handled automatically by AI Platform
     help='GCS location to write checkpoints and export models',
     required=True
     )
@@ -109,24 +109,25 @@ hpt.report_hyperparameter_tuning_metric(
     global_step=1000
     )
 
-# Export the model to a file. The name needs to be 'model.joblib'
-model_filename = 'model-xgboost.joblib'
-joblib.dump(model, model_filename)
+if args.model_dir:
+    # Export the model to a file. The name needs to be 'model.joblib'
+    model_filename = 'model-xgboost.joblib'
+    joblib.dump(model, model_filename)
 
-# Define the job dir, bucket id and bucket path to upload the model to GCS
-job_dir = args.job_dir.replace('gs://', '')  # Remove the 'gs://'
+    # Define the job dir, bucket id and bucket path to upload the model to GCS
+    job_dir = args.job_dir.replace('gs://', '')  # Remove the 'gs://'
 
-# Get the bucket Id
-bucket_id = job_dir.split('/')[0]
+    # Get the bucket Id
+    bucket_id = job_dir.split('/')[0]
 
-# Get the path
-bucket_path = job_dir.lstrip('{}/'.format(bucket_id))
+    # Get the path
+    bucket_path = job_dir.lstrip('{}/'.format(bucket_id))
 
-# Upload the model to GCS
-bucket = storage.Client().bucket(bucket_id)
-blob = bucket.blob('{}/{}'.format(
-    bucket_path,
-    model_filename
+    # Upload the model to GCS
+    bucket = storage.Client().bucket(bucket_id)
+    blob = bucket.blob('{}/{}'.format(
+        bucket_path,
+        model_filename
+        )
     )
-)
-blob.upload_from_filename(model_filename)
+    blob.upload_from_filename(model_filename)
