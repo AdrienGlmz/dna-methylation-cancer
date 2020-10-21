@@ -1,7 +1,7 @@
 FROM python:3.8.6
 WORKDIR /root
 
-RUN pip install xgboost scikit-learn pandas joblib
+RUN pip install xgboost==1.2.1 scikit-learn==0.23.2 pandas==1.1.3 joblib==0.17.0
 RUN pip install cloudml-hypertune
 RUN pip install google-cloud-storage==1.32.0
 
