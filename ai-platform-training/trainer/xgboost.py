@@ -15,7 +15,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--model-dir',  # Handled automatically by AI Platform
     help='GCS location to write checkpoints and export models',
-    required=True
+    default=None,
+    type=str
     )
 
 parser.add_argument(
