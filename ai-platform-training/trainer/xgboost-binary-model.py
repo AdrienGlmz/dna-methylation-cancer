@@ -124,7 +124,7 @@ if args.model_dir:
     joblib.dump(model, model_filename)
 
     # Define the job dir, bucket id and bucket path to upload the model to GCS
-    job_dir = args.job_dir.replace('gs://', '')  # Remove the 'gs://'
+    job_dir = args.model_dir.replace('gs://', '')  # Remove the 'gs://'
 
     # Get the bucket Id
     bucket_id = job_dir.split('/')[0]
