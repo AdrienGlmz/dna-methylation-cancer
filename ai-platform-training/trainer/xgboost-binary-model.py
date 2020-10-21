@@ -20,6 +20,13 @@ parser.add_argument(
     )
 
 parser.add_argument(
+    '--n_estimators',  # Specified in the config file
+    help='Number of trees in the forest',
+    default=100,
+    type=int
+    )
+
+parser.add_argument(
     '--ccp_alpha',  # Specified in the config file
     help='Constant that multiplies the regularization term',
     default=0.1,
@@ -62,16 +69,16 @@ parser.add_argument(
 args = parser.parse_args()
 
 GCS_BUCKET = configs.GCS_BUCKET
-RAW_DATASET_PATH = configs.RAW_DATASET_PATH
-LABEL_NAME = configs.LABEL_NAME
+TRAIN_DATASET_PATH = configs.TRAIN_DATASET_PATH
+TRAINING_LABEL_NAME = configs.TRAINING_LABEL_NAME
 
 # Define the GCS bucket the training data is in
 client = storage.Client()
 bucket = client.bucket(GCS_BUCKET)
 
 # Define the source blob name (aka file name) for the training data
-blob = bucket.blob(RAW_DATASET_PATH)
-label_name = LABEL_NAME
+blob = bucket.blob(TRAIN_DATASET_PATH)
+label_name = TRAINING_LABEL_NAME
 
 # Download the data into a file name
 blob.download_to_filename('train.csv')
@@ -93,7 +100,8 @@ model = xgb.XGBClassifier(objective='binary:logistic',
                           max_depth=args.max_depth,
                           alpha=args.ccp_alpha,
                           gamma=args.gamma,
-                          min_child_weight=args.min_child_weight)
+                          min_child_weight=args.min_child_weight,
+                          n_estimators=args.n_estimators)
 
 # Fit the training data and predict the test data
 model.fit(X_train, y_train)

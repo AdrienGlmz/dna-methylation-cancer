@@ -1,11 +1,15 @@
 trainingInput:
   hyperparameters:
     goal: MAXIMIZE
-    maxTrials: 15
-    maxParallelTrials: 0
+    maxTrials: 5
+    maxParallelTrials: 5
     hyperparameterMetricTag: f1_score
     enableTrialEarlyStopping: TRUE
     params:
+    - parameterName: n_estimators
+      type: INTEGER
+      minValue: 10
+      maxValue: 1000
     - parameterName: ccp_alpha
       type: DOUBLE
       minValue: 0.001

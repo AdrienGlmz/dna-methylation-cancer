@@ -29,5 +29,6 @@ RUN mkdir /root/trainer
 COPY ./ai-platform-training/trainer /root/trainer
 COPY ./configs /root/trainer/configs
 
+
 # Sets up the entry point to invoke the trainer.
-ENTRYPOINT ["python", "trainer/xgboost.py"]
+ENTRYPOINT ["python", "trainer/xgboost-binary-model.py"]
