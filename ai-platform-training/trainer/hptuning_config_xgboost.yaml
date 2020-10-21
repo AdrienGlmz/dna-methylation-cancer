@@ -3,7 +3,7 @@ trainingInput:
     goal: MAXIMIZE
     maxTrials: 15
     maxParallelTrials: 0
-    hyperparameterMetricTag: f1_score_micro
+    hyperparameterMetricTag: f1_score
     enableTrialEarlyStopping: TRUE
     params:
     - parameterName: ccp_alpha
