@@ -136,13 +136,13 @@ def read_dataset(file_path, label_names=['label'], project_filter=None,
     return betas, labels, cpg_sites, index
 
 
-def read_from_gcs(bucket_name, file_path, label_names):
+def read_from_gcs(bucket_name, file_path, index_name, label_name):
     destination_path = 'training_data.csv'
     download_single_file(bucket_name, file_path, destination_path)
     df = pd.read_csv(destination_path)
-    df = df.set_index('label_barcode')
-    betas = df.drop(label_names, axis=1).values
-    labels = df[label_names].values
-    cpg_sites = df.drop(label_names, axis=1).columns
+    df = df.set_index(index_name)
+    betas = df.drop(label_name, axis=1).values
+    labels = df[label_name].values
+    cpg_sites = df.drop(label_name, axis=1).columns
     index = df.index.values
     return betas, labels, cpg_sites, index
