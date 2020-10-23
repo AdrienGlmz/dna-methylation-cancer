@@ -54,7 +54,8 @@ def run():
     # cli tool exports the environment variable to pass to the pipelines.
     # TODO(b/157598477) Find a better way to pass parameters from CLI handler to
     # pipeline DSL file, instead of using environment vars.
-    tfx_image = os.environ.get('KUBEFLOW_TFX_IMAGE', None)
+    # tfx_image = os.environ.get('KUBEFLOW_TFX_IMAGE', None)
+    tfx_image = 'gcr.io/gcp-nyc/tfx-pipeline'
 
     runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
         kubeflow_metadata_config=metadata_config, tfx_image=tfx_image)
@@ -66,17 +67,19 @@ def run():
         pipeline.create_pipeline(
             pipeline_name=configs.PIPELINE_NAME,
             pipeline_root=PIPELINE_ROOT,
-            # query=configs.BIG_QUERY_QUERY,
+            tcga_betas_query=configs.TCGA_BETAS_QUERY,
+            tcga_betas_output_schema=configs.TCGA_BETAS_OUTPUT_SCHEMA,
+            tcga_betas_output_table_name=configs.TCGA_BETAS_OUTPUT_TABLE,
+            cpg_sites_list_query=configs.CPG_SITES_LIST_QUERY,
+            cpg_sites_list_output_schema=configs.CPG_SITES_OUTPUT_SCHEMA,
+            cpg_sites_list_output_table_name=configs.CPG_SITES_OUTPUT_TABLE,
             preprocessing_fn=configs.PREPROCESSING_FN,
             run_fn=configs.RUN_FN,
             train_args=trainer_pb2.TrainArgs(num_steps=configs.TRAIN_NUM_STEPS),
             eval_args=trainer_pb2.EvalArgs(num_steps=configs.EVAL_NUM_STEPS),
             eval_accuracy_threshold=configs.EVAL_ACCURACY_THRESHOLD,
             serving_model_dir=SERVING_MODEL_DIR,
-            # TODO(step 7): (Optional) Uncomment below to use provide GCP related
-            #               config for BigQuery with Beam DirectRunner.
-            # beam_pipeline_args=configs
-            # .BIG_QUERY_WITH_DIRECT_RUNNER_BEAM_PIPELINE_ARGS,
+            beam_pipeline_args=configs.BIG_QUERY_WITH_DIRECT_RUNNER_BEAM_PIPELINE_ARGS,
             # TODO(step 8): (Optional) Uncomment below to use Dataflow.
             # beam_pipeline_args=configs.DATAFLOW_BEAM_PIPELINE_ARGS,
             # TODO(step 9): (Optional) Uncomment below to use Cloud AI Platform.

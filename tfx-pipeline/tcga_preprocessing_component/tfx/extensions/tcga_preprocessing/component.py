@@ -174,4 +174,4 @@ class TCGAPreprocessing(base_component.BaseComponent):
             # outputs
             examples=example_artifacts
         )
-        super(TCGAPreprocessing, self).__init__(spec=spec)
+        super(TCGAPreprocessing, self).__init__(spec=spec, instance_name=instance_name)

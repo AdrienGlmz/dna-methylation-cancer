@@ -135,7 +135,7 @@ def get_cpg_sites_binary_target(df):
     # Get sum of squared
     for elt in CLASSES:
         mean_by_cpg = mean_by_cpg.withColumn(elt, coalesce(elt, 'avg_beta'))
-        mea_by_cpg = mean_by_cpg.withColumn(elt, (mean_by_cpg[elt] - mean_by_cpg['avg_beta']) ** 2)
+        mean_by_cpg = mean_by_cpg.withColumn(elt, (mean_by_cpg[elt] - mean_by_cpg['avg_beta']) ** 2)
 
     mean_by_cpg = mean_by_cpg.withColumn("sum_squared_between_groups", sum(mean_by_cpg[elt] for elt in CLASSES))
     mean_by_cpg = mean_by_cpg.orderBy('sum_squared_between_groups', ascending=False)

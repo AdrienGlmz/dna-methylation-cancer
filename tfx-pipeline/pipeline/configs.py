@@ -65,8 +65,103 @@ LIMIT 100
 """
 
 
-OUTPUT_SCHEMA_STRING = "case_barcode:STRING, beta_value:FLOAT, CpG_probe_id:STRING, aliquot_barcode:STRING, " \
+TCGA_BETAS_OUTPUT_SCHEMA = "case_barcode:STRING, beta_value:FLOAT, CpG_probe_id:STRING, aliquot_barcode:STRING, " \
                        "sample_id:STRING, sample_status:STRING, row_number:INTEGER"
+
+# CPG Site list config
+CPG_SITES_OUTPUT_TABLE = 'dna_cancer_prediction.test_cpg_site_list'
+
+CPG_SITES_LIST_QUERY = """
+WITH
+
+cpg_count_table AS (
+SELECT CpG_probe_id, count(beta_value) as cpg_count, (SELECT count(distinct aliquot_barcode) FROM `dna_cancer_prediction.test_tcga_betas`) as participant_count
+FROM `dna_cancer_prediction.tcga_betas`
+GROUP BY CpG_probe_id
+),
+
+filter_cpg AS (
+SELECT CpG_probe_id, cpg_count, participant_count
+FROM cpg_count_table A
+WHERE (cpg_count / participant_count)  >= 0.9
+),
+
+cpg_filtered AS (
+SELECT A.CpG_probe_id, B.beta_value, B.sample_status
+FROM filter_cpg A
+LEFT JOIN `dna_cancer_prediction.tcga_betas` B
+ON A.CpG_probe_id = B.CpG_probe_id
+),
+
+cpg_avg_beta AS (
+SELECT CpG_probe_id, avg(beta_value) as global_beta_avg
+FROM cpg_filtered
+GROUP BY CpG_probe_id
+),
+
+cpg_avg_beta_tumor AS (
+SELECT CpG_probe_id, avg(beta_value) as tumor_beta_avg
+FROM cpg_filtered
+WHERE sample_status = 'tumor'
+GROUP BY CpG_probe_id
+),
+
+cpg_avg_beta_normal AS (
+SELECT CpG_probe_id, avg(beta_value) as normal_beta_avg
+FROM cpg_filtered
+WHERE sample_status = 'normal'
+GROUP BY CpG_probe_id
+),
+
+cpg_averages AS (
+SELECT A.CpG_probe_id, A.global_beta_avg, COALESCE(B.tumor_beta_avg, A.global_beta_avg) as tumor_beta_avg, COALESCE(C.normal_beta_avg, A.global_beta_avg) as normal_beta_avg
+FROM cpg_avg_beta A
+LEFT JOIN cpg_avg_beta_tumor B ON A.CpG_probe_id = B.CpG_probe_id
+LEFT JOIN cpg_avg_beta_normal C on A.CpG_probe_id = C.CpG_probe_id
+),
+
+cpg_variances AS (
+SELECT CpG_probe_id, POWER((tumor_beta_avg - global_beta_avg), 2) + POWER((normal_beta_avg - global_beta_avg), 2) as sum_squares_between_groups
+FROM cpg_averages
+ORDER BY sum_squares_between_groups desc
+)
+
+SELECT *
+FROM cpg_variances
+LIMIT 5000
+"""
+
+CPG_SITES_OUTPUT_SCHEMA = "CpG_probe_id:STRING, sum_squares_between_groups:FLOAT"
+
+# PIVOT dataset config
+PIVOT_OUTPUT_TABLE = 'dna_cancer_prediction.test_pivot_table'
+
+PIVOT_DATASET_QUERY = """
+CALL dna_cancer_prediction.pivot(
+  'dna_cancer_prediction.test_tcga_betas' # source table
+  , 'dna_cancer_prediction.test_pivot_table_temp' # destination table
+  , ['aliquot_barcode'] # row_ids
+  , 'CpG_probe_id' # pivot_col_name
+  , 'beta_value' # pivot_col_value
+  , 100 # max_columns
+  , 'SUM' # aggregation
+  , '' # optional_limit
+);
+
+SELECT A.*, B.sample_status
+FROM dna_cancer_prediction.test_pivot_table_temp A
+LEFT JOIN dna_cancer_prediction.test_tcga_betas B ON A.aliquot_barcode = B.aliquot_barcode
+"""
+
+# Will autodetect schema
+PIVOT_OUTPUT_SCHEMA = ""
+
+# BigQuery Example Gen Query
+TRAIN_QUERY = """
+SELECT *
+FROM `dna_cancer_prediction.test_pivot_table`
+"""
+
 
 PREPROCESSING_FN = 'models.preprocessing.preprocessing_fn'
 RUN_FN = 'models.keras.model.run_fn'

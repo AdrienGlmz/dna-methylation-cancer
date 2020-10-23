@@ -21,8 +21,7 @@ from tfx.components.trainer import executor as trainer_executor
 from tfx.dsl.experimental import latest_blessed_model_resolver
 from tfx.extensions.google_cloud_ai_platform.pusher import executor as ai_platform_pusher_executor
 from tfx.extensions.google_cloud_ai_platform.trainer import executor as ai_platform_trainer_executor
-from tfx.extensions.google_cloud_big_query.example_gen import \
-    component as big_query_example_gen_component  # pylint: disable=unused-import
+from tfx.extensions.google_cloud_big_query.example_gen import component as big_query_example_gen_component
 from tfx.extensions.tcga_preprocessing import component as preprocessing  # pylint: disable=inspection
 from tfx.orchestration import pipeline
 from tfx.proto import pusher_pb2
@@ -39,6 +38,12 @@ def create_pipeline(
         tcga_betas_query: Text,
         tcga_betas_output_schema: Text,
         tcga_betas_output_table_name: Text,
+        cpg_sites_list_query: Text,
+        cpg_sites_list_output_schema: Text,
+        cpg_sites_list_output_table_name: Text,
+        pivot_query: Text,
+        pivot_output_table: Text,
+        final_dataset_query: Text,
         preprocessing_fn: Text,
         run_fn: Text,
         train_args: trainer_pb2.TrainArgs,
@@ -56,20 +61,40 @@ def create_pipeline(
     components = []
 
     # Create the tcga_betas table
-    query = tcga_betas_query
     empty_ptransform = None
-    tcga_output_schema = tcga_betas_output_schema
-    tcga_output_table_name = tcga_betas_output_table_name
-    tcga_betas_table = preprocessing.TCGAPreprocessing(query=query,
+    tcga_betas_table = preprocessing.TCGAPreprocessing(query=tcga_betas_query,
                                                        bucket_name='dna-methylation-cancer',
                                                        beam_transform=empty_ptransform,
-                                                       output_schema=tcga_output_schema,
-                                                       table_name=tcga_output_table_name)
+                                                       output_schema=tcga_betas_output_schema,
+                                                       table_name=tcga_betas_output_table_name,
+                                                       instance_name='TCGA-table')
     components.append(tcga_betas_table)
 
+    # Create the cpg site list table
+    tcga_cpg_sites_table = preprocessing.TCGAPreprocessing(query=cpg_sites_list_query,
+                                                           bucket_name='dna-methylation-cancer',
+                                                           beam_transform=empty_ptransform,
+                                                           output_schema=cpg_sites_list_output_schema,
+                                                           table_name=cpg_sites_list_output_table_name,
+                                                           instance_name='CPG-site-list-table')
+    tcga_cpg_sites_table.add_upstream_node(tcga_betas_table)
+    components.append(tcga_cpg_sites_table)
+
+    # Create the pivot dataset output table
+    pivot_table = preprocessing.TCGAPreprocessing(query=pivot_query,
+                                                  bucket_name='dna-methylation-cancer',
+                                                  beam_transform=empty_ptransform,
+                                                  output_schema="",
+                                                  table_name=pivot_output_table,
+                                                  instance_name='pivot-table')
+
+    pivot_table.add_upstream_node(tcga_cpg_sites_table)
+    components.append(pivot_table)
+
     # Brings data into the pipeline or otherwise joins/converts training data.
-    # example_gen = big_query_example_gen_component.BigQueryExampleGen(query=query)
-    # components.append(example_gen)
+    example_gen = big_query_example_gen_component.BigQueryExampleGen(query=final_dataset_query)
+    example_gen.add_upstream_node(pivot_table)
+    components.append(example_gen)
 
     # Computes statistics over data for visualization and example validation.
     # statistics_gen = StatisticsGen(examples=example_gen.outputs['examples'])
