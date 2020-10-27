@@ -134,7 +134,7 @@ LIMIT 5000
 CPG_SITES_OUTPUT_SCHEMA = "CpG_probe_id:STRING, sum_squares_between_groups:FLOAT"
 
 # PIVOT dataset config
-PIVOT_OUTPUT_TABLE = 'dna_cancer_prediction.test_pivot_table'
+PIVOT_OUTPUT_TABLE = 'gcp-nyc.dna_cancer_prediction.test_pivot_table'
 
 PIVOT_DATASET_QUERY = """
 CALL dna_cancer_prediction.pivot(
@@ -147,26 +147,20 @@ CALL dna_cancer_prediction.pivot(
   , 'SUM' # aggregation
   , '' # optional_limit
 );
+"""
 
+# BigQuery Example Gen Query
+TRAIN_QUERY = """
 SELECT A.*, B.sample_status
 FROM dna_cancer_prediction.test_pivot_table_temp A
 LEFT JOIN dna_cancer_prediction.test_tcga_betas B ON A.aliquot_barcode = B.aliquot_barcode
 """
 
-# Will autodetect schema
-PIVOT_OUTPUT_SCHEMA = ""
-
-# BigQuery Example Gen Query
-TRAIN_QUERY = """
-SELECT *
-FROM `dna_cancer_prediction.test_pivot_table`
-"""
-
 
 PREPROCESSING_FN = 'models.preprocessing.preprocessing_fn'
-RUN_FN = 'models.keras.model.run_fn'
+# RUN_FN = 'models.keras.model.run_fn'
 # NOTE: Uncomment below to use an estimator based model.
-# RUN_FN = 'models.estimator.model.run_fn'
+RUN_FN = 'models.estimator.model.run_fn'
 
 TRAIN_NUM_STEPS = 1000
 EVAL_NUM_STEPS = 150

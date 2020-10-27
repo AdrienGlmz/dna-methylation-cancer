@@ -27,7 +27,6 @@ from tfx.orchestration import metadata
 from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
 from tfx.proto import trainer_pb2
 
-
 # TFX pipeline produces many output files and metadata. All output data will be
 # stored under this OUTPUT_DIR.
 # NOTE: It is recommended to have a separated OUTPUT_DIR which is *outside* of
@@ -58,34 +57,36 @@ DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
 
 def run():
-  """Define a beam pipeline."""
+    """Define a beam pipeline."""
 
-  BeamDagRunner().run(
-      pipeline.create_pipeline(
-          pipeline_name=configs.PIPELINE_NAME,
-          pipeline_root=PIPELINE_ROOT,
-          tcga_betas_query=configs.TCGA_BETAS_QUERY,
-          tcga_betas_output_schema=configs.TCGA_BETAS_OUTPUT_SCHEMA,
-          tcga_betas_output_table_name=configs.TCGA_BETAS_OUTPUT_TABLE,
-          cpg_sites_list_query=configs.CPG_SITES_LIST_QUERY,
-          cpg_sites_list_output_schema=configs.CPG_SITES_OUTPUT_SCHEMA,
-          cpg_sites_list_output_table_name=configs.CPG_SITES_OUTPUT_TABLE,
-          pivot_query=configs.PIVOT_DATASET_QUERY,
-          pivot_output_table=configs.PIVOT_OUTPUT_TABLE,
-          final_dataset_query=configs.TRAIN_QUERY,
-          preprocessing_fn=configs.PREPROCESSING_FN,
-          run_fn=configs.RUN_FN,
-          train_args=trainer_pb2.TrainArgs(num_steps=configs.TRAIN_NUM_STEPS),
-          eval_args=trainer_pb2.EvalArgs(num_steps=configs.EVAL_NUM_STEPS),
-          eval_accuracy_threshold=configs.EVAL_ACCURACY_THRESHOLD,
-          serving_model_dir=SERVING_MODEL_DIR,
-          # TODO(step 7): (Optional) Uncomment here to use provide GCP related
-          #               config for BigQuery with Beam DirectRunner.
-          beam_pipeline_args=configs.BIG_QUERY_WITH_DIRECT_RUNNER_BEAM_PIPELINE_ARGS,
-          metadata_connection_config=metadata.sqlite_metadata_connection_config(
-              METADATA_PATH)))
+    BeamDagRunner().run(
+        pipeline.create_pipeline(
+            pipeline_name=configs.PIPELINE_NAME,
+            pipeline_root=PIPELINE_ROOT,
+            gcp_project=configs.GOOGLE_CLOUD_PROJECT,
+            gcs_bucket=configs.GCS_BUCKET_NAME,
+            tcga_betas_query=configs.TCGA_BETAS_QUERY,
+            tcga_betas_output_schema=configs.TCGA_BETAS_OUTPUT_SCHEMA,
+            tcga_betas_output_table_name=configs.TCGA_BETAS_OUTPUT_TABLE,
+            cpg_sites_list_query=configs.CPG_SITES_LIST_QUERY,
+            cpg_sites_list_output_schema=configs.CPG_SITES_OUTPUT_SCHEMA,
+            cpg_sites_list_output_table_name=configs.CPG_SITES_OUTPUT_TABLE,
+            pivot_query=configs.PIVOT_DATASET_QUERY,
+            pivot_output_table=configs.PIVOT_OUTPUT_TABLE,
+            final_dataset_query=configs.TRAIN_QUERY,
+            preprocessing_fn=configs.PREPROCESSING_FN,
+            run_fn=configs.RUN_FN,
+            train_args=trainer_pb2.TrainArgs(num_steps=configs.TRAIN_NUM_STEPS),
+            eval_args=trainer_pb2.EvalArgs(num_steps=configs.EVAL_NUM_STEPS),
+            eval_accuracy_threshold=configs.EVAL_ACCURACY_THRESHOLD,
+            serving_model_dir=SERVING_MODEL_DIR,
+            # TODO(step 7): (Optional) Uncomment here to use provide GCP related
+            #               config for BigQuery with Beam DirectRunner.
+            beam_pipeline_args=configs.BIG_QUERY_WITH_DIRECT_RUNNER_BEAM_PIPELINE_ARGS,
+            metadata_connection_config=metadata.sqlite_metadata_connection_config(
+                METADATA_PATH)))
 
 
 if __name__ == '__main__':
-  logging.set_verbosity(logging.INFO)
-  run()
+    logging.set_verbosity(logging.INFO)
+    run()

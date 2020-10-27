@@ -123,7 +123,7 @@ class Executor(base_executor.BaseExecutor):
                             use_bigquery_source=use_bigquery_source)
                  | 'WriteToBQ' >> beam.io.WriteToBigQuery(
                             table_name,
-                            schema='SCHEMA_AUTODETECT',
+                            schema=output_schema,
                             write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE,
                             create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED)
                  )
