@@ -151,9 +151,14 @@ CALL dna_cancer_prediction.pivot(
 
 # BigQuery Example Gen Query
 TRAIN_QUERY = """
+With sample_status_table AS (
+SELECT distinct aliquot_barcode, sample_status
+from dna_cancer_prediction.test_tcga_betas
+)
+
 SELECT A.*, B.sample_status
 FROM dna_cancer_prediction.test_pivot_table_temp A
-LEFT JOIN dna_cancer_prediction.test_tcga_betas B ON A.aliquot_barcode = B.aliquot_barcode
+LEFT JOIN sample_status_table B ON A.aliquot_barcode = B.aliquot_barcode
 """
 
 
