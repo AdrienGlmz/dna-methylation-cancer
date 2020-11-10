@@ -1,4 +1,4 @@
-# Prediction Cancer with DNA Methylation data
+# Predicting Cancer with DNA Methylation data
 
 This repository holds the code for the "Predicting Cancer with DNA Methylation data" that 
 was submitted to the 2020 _Build Hackathon.
@@ -9,18 +9,23 @@ DNA Methylation data and cancer development.
 
 ## Repo structure
 
-This repository is divided into the following folders. Each folder will have its own README.
- 1. `dataproc_processing`
+The main file in this repo is the `working-notebook` Jupyter notebook.
+It walks through every steps in the pipeline from data acquisition to model deployment.
+
+The jupyter notebook is importing code from the other folders in this repo.
+ 1. `configs`
     
-    This folder holds pySpark scripts that were used as pre-processing steps.
-    Those scripts are designed to work with a Dataproc instance. 
- 2. `data_engineering`
+    This folder contains  configuration files and environment variables
+    
+ 2. `feature_engineering`
  
-    This folder holds Python scripts that are used for data engineering.
-    This folder creates a Python library that is then called by the scripts in the `3.modeling` folder. 
- 3. `modeling`
+    This folder holds Python modules that are used for feature engineering.
+    This folder creates a Python library that is then called by the `working-notebook` Jupyter Notebook. 
+
+ 3. `sql_queries`
+
+    This folder contains text files that can be read as SQL queries.
     
-    This folder holds Jupyter Notebook files were used for modeling experiments.
  4. `ai-platform-training`
  
     This folder holds configuration scripts to launch a AI Platform Training job.
@@ -30,6 +35,14 @@ This repository is divided into the following folders. Each folder will have its
     This folder holds configuration scripts to deploy a model on the AI Platform service.
     This easily creates a callable API that is then used by the web-application.
 
+The two folders below are not used as part of the Jupyter Notebook pipeline but are there for reference
+ - `dataproc_processing` (Not used)
+    
+    This folder holds pySpark scripts that were used as pre-processing steps.
+    Those scripts are designed to work with a Dataproc instance.
+ - `tfx-pipeline` (Not used)
+  
+    A tfx pipeline to executes steps from beginning to end with one GCP service.
 ## Requirements
 
 ### Python and conda

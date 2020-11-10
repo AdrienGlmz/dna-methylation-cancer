@@ -246,7 +246,7 @@ if __name__ == "__main__":
     (top_cpg
      .write
      .format('bigquery')
-     .option('table', 'gcp-nyc.dna_cancer_prediction.cpg_site_list')
+     .option('table', 'gcp-nyc.dna_cancer_prediction.cpg_site_list.txt')
      .save()
      )
     # top_cpg.repartition(6).saveAsTextFile('gs://build_hackathon_dnanyc/columns_to_keep_v4/' + target_column)
