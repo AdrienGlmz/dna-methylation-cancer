@@ -1,0 +1,10 @@
+# Pipeline definition file in argo format for Kubeflow.
+dna-methylation-binary.tar.gz
+# Default pipeline output directory
+tfx_pipeline_output/
+# Default tfx metadata SQLite DB directory
+tfx_metadata/
+
+pipeline.yaml
+pipeline_old.yaml
+*.pkl
