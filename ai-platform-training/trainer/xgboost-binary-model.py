@@ -120,7 +120,7 @@ hpt.report_hyperparameter_tuning_metric(
 
 if args.model_dir:
     # Export the model to a file. The name needs to be 'model.joblib'
-    model_filename = 'model-xgboost.joblib'
+    model_filename = 'model.joblib'
     joblib.dump(model, model_filename)
 
     # Define the job dir, bucket id and bucket path to upload the model to GCS

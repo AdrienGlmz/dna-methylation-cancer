@@ -1,7 +1,7 @@
 # GCP config variables
 PROJECT_ID = 'gcp-nyc'  # TO REPLACE WITH YOUR GCP PROJECT
 DATASET = 'dna_cancer_prediction'
-BETAS_TABLE_NAME = 'tcga-betas'
+BETAS_TABLE_NAME = 'tcga_betas'
 CPG_SITE_TABLE_NAME = 'cpg_site_list'
 GCS_BUCKET = 'dna-methylation-cancer'  # TO REPLACE WITH YOUR GCS BUCKET
 REGION = "us-east1"

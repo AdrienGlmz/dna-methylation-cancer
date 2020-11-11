@@ -1,4 +1,4 @@
-CREATE TABLE __DATASET__.__CPG_SITE_TABLE_NAME__
+CREATE OR REPLACE TABLE __DATASET__.__CPG_SITE_TABLE_NAME__
 AS
 
 WITH
@@ -54,6 +54,6 @@ FROM cpg_averages
 ORDER BY sum_squares_between_groups desc
 )
 
-SELECT *
+SELECT CpG_probe_id
 FROM cpg_variances
 LIMIT 5000
